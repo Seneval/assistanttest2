@@ -2,45 +2,56 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f9;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    background: #f9f9f9;
+    color: #333;
   }
   
   .container {
-    width: 400px;
-    background: white;
-    padding: 20px;
+    width: 90%;
+    max-width: 600px;
+    margin: 50px auto;
+    background: #fff;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
   }
   
-  #chat-box {
-    height: 300px;
+  h1 {
+    text-align: center;
+    background: #0078d7;
+    color: #fff;
+    padding: 15px;
+    margin: 0;
+  }
+  
+  .chat-container {
+    height: 400px;
     overflow-y: auto;
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+  }
+  
+  .input-container {
+    display: flex;
+    border-top: 1px solid #ddd;
   }
   
   #user-input {
-    width: calc(100% - 50px);
+    flex: 1;
+    border: none;
     padding: 10px;
-    margin-right: 10px;
+    font-size: 16px;
   }
   
   #send-button {
-    padding: 10px 15px;
-    background: #007BFF;
-    color: white;
+    background: #0078d7;
+    color: #fff;
     border: none;
+    padding: 10px 15px;
     cursor: pointer;
-    border-radius: 4px;
   }
   
   #send-button:hover {
-    background: #0056b3;
+    background: #005bb5;
   }
   
