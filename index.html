@@ -12,12 +12,13 @@
     <p>Chat with your custom assistant below.</p>
   </header>
   <main>
-    <div class="chat-container">
-      <div id="chat-box" class="chat-box"></div>
-      <div class="input-container">
-        <input id="user-input" type="text" placeholder="Type your message here..." />
-        <button id="send-btn">Send</button>
-      </div>
+    <div id="chat-container">
+      <div id="messages"></div>
+      <div id="loading-spinner" class="hidden">Loading...</div>
+      <form id="chat-form">
+        <input type="text" id="user-message" placeholder="Type your message here.." required>
+        <button type="submit">Send</button>
+      </form>
     </div>
   </main>
   <script src="app.js"></script>
