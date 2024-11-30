@@ -1,46 +1,57 @@
-const fetch = require('node-fetch'); // Ensure node-fetch@2 is installed.
+const fetch = require('node-fetch'); // Ensure version 2 is installed
 
-// Export the handler for the Netlify serverless function
 exports.handler = async (event) => {
-  try {
-    // Parse the incoming request body to get the user's message
-    const { message } = JSON.parse(event.body);
+    try {
+        // Parse the incoming request
+        const body = JSON.parse(event.body);
+        const userMessage = body.message; // User's input message
 
-    // Define the Assistant ID explicitly
-    const ASSISTANT_ID = "asst_QuRLJBdbCY7lq3Otfwrr4O7u"; // Use your OpenAI Assistant ID here
+        // Environment Variables
+        const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // Your OpenAI API Key
+        const ASSISTANT_ID = 'asst_QuRLJBdbCY7lq3Otfwrr4O7u'; // Your Assistant ID
 
-    // Make a POST request to the OpenAI Assistant API
-    const response = await fetch(`https://api.openai.com/v1/assistants/${ASSISTANT_ID}/messages`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, // The API key is pulled from environment variables
-      },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: message }], // Send the user’s input message to the assistant
-      }),
-    });
+        // Assistant API Endpoint
+        const url = `https://api.openai.com/v1/assistants/${ASSISTANT_ID}/chat/completions`;
 
-    // Check if OpenAI API responded successfully
-    if (!response.ok) {
-      const errorData = await response.json(); // Parse the error response
-      throw new Error(`OpenAI API Error: ${errorData.error.message}`); // Provide detailed error information
+        // Construct the payload
+        const payload = {
+            messages: [
+                { role: "user", content: userMessage } // User's input
+            ]
+        };
+
+        // Make the API call
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${OPENAI_API_KEY}`,
+                "OpenAI-Beta": "assistants=v2" // Beta header for Assistants API
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await response.json(); // Parse the response
+
+        // Handle API errors
+        if (!response.ok) {
+            console.error("OpenAI API Error:", data);
+            throw new Error(data.error?.message || "Failed to get response from OpenAI API");
+        }
+
+        // Extract assistant's reply
+        const assistantReply = data.choices[0].message.content;
+
+        // Return the response
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ reply: assistantReply }),
+        };
+    } catch (error) {
+        console.error("Error:", error.message);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: "Unable to process your request." }),
+        };
     }
-
-    // Parse the response from OpenAI API
-    const data = await response.json();
-    const reply = data.choices[0].message.content; // Extract the reply content
-
-    // Return the response to the frontend
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ reply }), // Send the assistant's reply back to the frontend
-    };
-  } catch (error) {
-    console.error('Error:', error.message); // Log the error for debugging purposes
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to fetch response from assistant.' }), // Return a user-friendly error message
-    };
-  }
 };
