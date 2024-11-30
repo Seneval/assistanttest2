@@ -1,40 +1,52 @@
-// Select DOM elements
-const chatContainer = document.getElementById("chat-container");
-const userInput = document.getElementById("user-input");
-const sendButton = document.getElementById("send-button");
+// Select elements
+const chatBox = document.getElementById('chat-box');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
 
-// Helper function to append messages
-function appendMessage(sender, message) {
-  const messageDiv = document.createElement("div");
-  messageDiv.textContent = `${sender}: ${message}`;
-  messageDiv.className = sender.toLowerCase();
-  chatContainer.appendChild(messageDiv);
-  chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to the latest message
+// Append a message to the chat box
+function appendMessage(content, type) {
+  const message = document.createElement('p');
+  message.className = type === 'user' ? 'user-message' : 'assistant-message';
+  message.textContent = content;
+  chatBox.appendChild(message);
+  chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
 }
 
-// Event listener for the send button
-sendButton.addEventListener("click", async () => {
+// Send a message to the server
+async function sendMessage() {
   const userMessage = userInput.value.trim();
   if (!userMessage) return;
 
-  appendMessage("You", userMessage);
-  userInput.value = ""; // Clear input
+  // Append user's message
+  appendMessage(userMessage, 'user');
+  userInput.value = ''; // Clear input
+
+  // Show a loading indicator
+  appendMessage('Typing...', 'assistant');
 
   try {
-    const response = await fetch("/.netlify/functions/chatbot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await fetch('/.netlify/functions/chatbot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ message: userMessage }),
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch response from server.");
-    }
+    if (!response.ok) throw new Error('Failed to fetch response');
 
-    const data = await response.json();
-    appendMessage("Assistant", data.reply);
+    const { reply } = await response.json();
+
+    // Replace "Typing..." with the assistant's response
+    chatBox.lastChild.textContent = reply;
   } catch (error) {
-    appendMessage("Assistant", "Error: Could not process your request.");
+    chatBox.lastChild.textContent = 'Error: Unable to get a response.';
     console.error(error);
   }
+}
+
+// Event listener
+sendBtn.addEventListener('click', sendMessage);
+userInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMessage();
 });
