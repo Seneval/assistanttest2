@@ -1,55 +1,46 @@
-// Select the form, messages container, and loading spinner
-const form = document.getElementById('chat-form');
-const messagesDiv = document.getElementById('messages');
+const messageForm = document.getElementById('message-form');
+const chatArea = document.getElementById('chat-area');
 const loadingDiv = document.getElementById('loading-spinner');
 
-// Add event listener for form submission
-form.addEventListener('submit', async (event) => {
-  event.preventDefault(); // Prevent form reload
+// Add event listener to handle form submission
+messageForm.addEventListener('submit', async (event) => {
+  event.preventDefault(); // Prevent page reload
 
-  // Get user message and clear input field
   const userMessage = document.getElementById('user-message').value;
-  document.getElementById('user-message').value = '';
 
-  // Display user's message
-  const userDiv = document.createElement('div');
-  userDiv.className = 'message user-message';
-  userDiv.textContent = userMessage;
-  messagesDiv.appendChild(userDiv);
+  // Add the user message to the chat area
+  chatArea.innerHTML += `<div class="message user-message">${userMessage}</div>`;
+
+  // Clear the input field
+  document.getElementById('user-message').value = '';
 
   // Show loading spinner
   loadingDiv.style.display = 'block';
 
   try {
-    // Send user message to backend
+    // Send the message to the serverless function
     const response = await fetch('/.netlify/functions/chatbot', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: userMessage }),
     });
 
+    // Parse the response
     const result = await response.json();
 
-    // Hide loading spinner
+    // Hide the spinner
     loadingDiv.style.display = 'none';
-
-    // Display assistant's response
-    const assistantDiv = document.createElement('div');
-    assistantDiv.className = 'message assistant-message';
 
     if (result.reply) {
-      assistantDiv.textContent = result.reply;
+      // Add the assistant's reply to the chat area
+      chatArea.innerHTML += `<div class="message assistant-message">${result.reply}</div>`;
     } else {
-      assistantDiv.textContent = result.error || 'Error: Unable to get a response.';
+      chatArea.innerHTML += `<div class="message error-message">Error: Unable to get a response from the assistant.</div>`;
     }
-    messagesDiv.appendChild(assistantDiv);
   } catch (error) {
-    // Hide loading spinner and display error
+    // Hide the spinner and show an error message
     loadingDiv.style.display = 'none';
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'message assistant-message';
-    errorDiv.textContent = 'Error: Failed to fetch response.';
-    messagesDiv.appendChild(errorDiv);
+    chatArea.innerHTML += `<div class="message error-message">Failed to connect to the server.</div>`;
     console.error(error);
   }
 });

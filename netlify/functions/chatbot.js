@@ -1,8 +1,5 @@
-const fetch = require('node-fetch'); // Ensure node-fetch@2
+const fetch = require('node-fetch'); // For API calls
 require('dotenv').config(); // Load environment variables
-
-const ASSISTANT_ID = 'asst_QuRLJBdbCY7lq3Otfwrr4O7u'; // Replace with your assistant ID
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 exports.handler = async (event) => {
   try {
@@ -15,25 +12,24 @@ exports.handler = async (event) => {
       };
     }
 
-    // Call the Assistant API
-    const response = await fetch(`https://api.openai.com/v1/assistants/${ASSISTANT_ID}/completions`, {
+    // OpenAI API call to the specific assistant
+    const response = await fetch('https://api.openai.com/v1/assistants/asst_bQLKmNbKawCB5ig1y0HmTrQP/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'OpenAI-Beta': 'assistants=v2',
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, // API key from environment variables
+        'OpenAI-Beta': 'assistants=v2', // Beta header for Assistants API
       },
       body: JSON.stringify({
-        input: message, // User's input
-        max_tokens: 800, // Customize token limit
-        temperature: 0.7, // Creativity
-        top_p: 1.0, // Probability
+        messages: [{ role: 'user', content: message }],
+        max_tokens: 100, // Adjust this as needed
+        temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('OpenAI API Error:', errorData);
+      console.error('Error in OpenAI API:', errorData);
       return {
         statusCode: response.status,
         body: JSON.stringify({ error: 'Failed to get a response from the assistant.' }),
@@ -41,16 +37,17 @@ exports.handler = async (event) => {
     }
 
     const data = await response.json();
+    const assistantReply = data.choices[0].message.content;
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ reply: data.input || data.choices[0].message.content }),
+      body: JSON.stringify({ reply: assistantReply }),
     };
   } catch (error) {
     console.error('Server Error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Server error. Please try again later.' }),
+      body: JSON.stringify({ error: 'Internal server error.' }),
     };
   }
 };
